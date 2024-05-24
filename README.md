@@ -30,7 +30,7 @@ aws ec2 create-key-pair --key-name <NomeDaSuaChave> --query 'KeyMaterial' --outp
 ```
 *- Criar a pilha com CloudFormation*
 ```bash
-aws cloudformation create-stack --stack-name minha-pilha --template-body file://caminho/para/seu/projeto.yaml --parameters ParameterKey=KeyName,ParameterValue=<NomeDaSuaChave> --capabilities CAPABILITY_IAM
+aws cloudformation create-stack --stack-name minha-pilha --template-body file://config.yaml --parameters ParameterKey=KeyName,ParameterValue=<NomeDaSuaChave> --capabilities CAPABILITY_IAM
 ```
 
 *Caso o caminho não funcione, utilize o caminho completo*
