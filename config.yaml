@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Projeto Computação em nuvem - CloudFormation
+Description: Projeto Cloud 24.1 - CloudFormation
 
 Parameters:
   KeyName:
