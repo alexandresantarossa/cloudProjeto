@@ -120,7 +120,7 @@ Resources:
           sudo pip3 install flask boto3
           sudo mkdir /opt/app
           sudo git clone https://github.com/alexandresantarossa/cloudProjeto /opt/app
-          nohup python3 /opt/app/main.py > /var/log/app.log 2>&1 &
+          nohup python3 /opt/app/main.py > /var/log/main.log 2>&1 &
 
   AutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
