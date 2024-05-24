@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>insper.FM</title>
+    <style>
+        body {
+            background-color: black;
+            color: white;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+        h1, h2 {
+            margin: 20px;
+        }
+        form {
+            display: inline-block;
+            margin-top: 20px;
+        }
+        label, input {
+            display: block;
+            margin: 10px auto;
+        }
+        input[type="text"], input[type="email"] {
+            width: 300px;
+            padding: 10px;
+        }
+        input[type="submit"] {
+            padding: 10px 20px;
+            background-color: white;
+            color: black;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>insper.FM</h1>
+    <form method="POST">
+        <label for="artist">Artista Favorito:</label>
+        <input type="text" id="artist" name="artist" required>
+        <br><br>
+        <label for="song">Música Favorita:</label>
+        <input type="text" id="song" name="song" required>
+        <br><br>
+        <label for="album">Álbum Favorito:</label>
+        <input type="text" id="album" name="album" required>
+        <br><br>
+        <input type="submit" value="Enviar">
+    </form>
+
+    {% if entries %}
+    <h2>Informações Submetidas:</h2>
+    <ul>
+        {% for entry in entries %}
+        <li>Artista: {{ entry.artist }}, Música: {{ entry.song }}, Álbum: {{ entry.album }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</body>
+</html>
