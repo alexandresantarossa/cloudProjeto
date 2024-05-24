@@ -28,7 +28,7 @@ Resources:
       AvailabilityZone: us-east-1a
       CidrBlock: "10.0.1.0/24"
       MapPublicIpOnLaunch: true
-  
+
   Subnet2:
     Type: AWS::EC2::Subnet
     Properties:
@@ -77,7 +77,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: ApplicationLoadBalancer
-      Subnets: 
+      Subnets:
         - !Ref Subnet1
         - !Ref Subnet2
       SecurityGroups:
@@ -86,11 +86,10 @@ Resources:
       Tags:
         - Key: Name
           Value: ApplicationLoadBalancer
-  
+
   SecurityGroupInstance:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupName: InstanceSecurityGroup
       GroupDescription: Security group for EC2 instances
       VpcId: !Ref MainVPC
       SecurityGroupIngress:
@@ -106,12 +105,11 @@ Resources:
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      ImageId: YOUR_AMI_ID
+      ImageId: ami-0f30a9c3a48f3fa79
       InstanceType: t2.micro
       KeyName: !Ref KeyName
       SecurityGroups:
         - !Ref SecurityGroupInstance
-        - !Ref SecurityGroupALB
       IamInstanceProfile: !Ref DynamoDBAccessProfile
       UserData:
         Fn::Base64: |
@@ -149,10 +147,10 @@ Resources:
       AutoScalingGroupName: !Ref AutoScalingGroup
       PolicyType: TargetTrackingScaling
       TargetTrackingConfiguration:
-        TargetValue: 70.0  
+        TargetValue: 70.0
         PredefinedMetricSpecification:
           PredefinedMetricType: ASGAverageCPUUtilization
-  
+
   CPUAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -209,17 +207,6 @@ Resources:
         ReadCapacityUnits: 5
         WriteCapacityUnits: 5
 
-  DynamoDBSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: Security group for DynamoDB
-      VpcId: !Ref MainVPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          SourceSecurityGroupId: !Ref SecurityGroupInstance
-
   DynamoDBAccessRole:
     Type: AWS::IAM::Role
     Properties:
@@ -253,16 +240,8 @@ Resources:
   DynamoDBAccessProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
-      Roles: [!Ref DynamoDBAccessRole]
-
-  VPCEndpointDynamoDB:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      ServiceName: com.amazonaws.us-east-2.dynamodb
-      VpcId: !Ref MainVPC
-      RouteTableIds:
-        - !Ref RouteTable
-      VpcEndpointType: Gateway
+      Roles:
+        - !Ref DynamoDBAccessRole
 
 Outputs:
   AutoScalingGroupId:
