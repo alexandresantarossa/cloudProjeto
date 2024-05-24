@@ -110,6 +110,7 @@ Resources:
       KeyName: !Ref KeyName
       SecurityGroups:
         - !Ref SecurityGroupInstance
+        - !Ref SecurityGroupALB
       IamInstanceProfile: !Ref DynamoDBAccessProfile
       UserData:
         Fn::Base64: |
