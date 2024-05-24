@@ -17,10 +17,22 @@
         form {
             display: inline-block;
             margin-top: 20px;
+            text-align: center;
         }
         label, input {
-            display: block;
             margin: 10px auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-row {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .form-row label, .form-row input {
+            display: inline-block;
+            margin: 0;
         }
         input[type="text"], input[type="email"] {
             width: 300px;
@@ -33,19 +45,37 @@
             border: none;
             cursor: pointer;
         }
+        ul {
+            list-style: none;
+            padding: 0;
+            text-align: center;
+        }
+        li {
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
     <h1>insper.FM</h1>
     <form method="POST">
-        <label for="artist">Artista Favorito:</label>
-        <input type="text" id="artist" name="artist" required>
-        <br><br>
-        <label for="song">Música Favorita:</label>
-        <input type="text" id="song" name="song" required>
-        <br><br>
-        <label for="album">Álbum Favorito:</label>
-        <input type="text" id="album" name="album" required>
+        <div class="form-group">
+            <label for="nome">Nome: </label>
+            <input type="text" id="nome" name="nome" required>
+        </div>
+        <div class="form-row">
+            <div>
+                <label for="artist">Artista Favorito: </label>
+                <input type="text" id="artist" name="artist" required>
+            </div>
+            <div>
+                <label for="song">Música Favorita: </label>
+                <input type="text" id="song" name="song" required>
+            </div>
+            <div>
+                <label for="album">Álbum Favorito: </label>
+                <input type="text" id="album" name="album" required>
+            </div>
+        </div>
         <br><br>
         <input type="submit" value="Enviar">
     </form>
@@ -54,7 +84,7 @@
     <h2>Informações Submetidas:</h2>
     <ul>
         {% for entry in entries %}
-        <li>Artista: {{ entry.artist }}, Música: {{ entry.song }}, Álbum: {{ entry.album }}</li>
+        <li>{{ entry.num }}. Nome: {{ entry.nome }}, Artista: {{ entry.artist }}, Música: {{ entry.song }}, Álbum: {{ entry.album }}</li>
         {% endfor %}
     </ul>
     {% endif %}
