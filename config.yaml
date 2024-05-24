@@ -106,7 +106,7 @@ Resources:
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      ImageId: ami-05ade5d40b1a76a54
+      ImageId: ami-0e001c9271cf7f3b9
       InstanceType: t2.micro
       KeyName: !Ref KeyName
       SecurityGroups:
