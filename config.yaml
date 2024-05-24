@@ -244,6 +244,15 @@ Resources:
       Roles:
         - !Ref DynamoDBAccessRole
 
+  VPCEndpointDynamoDB:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      ServiceName: com.amazonaws.us-east-1.dynamodb
+      VpcId: !Ref MainVPC
+      RouteTableIds:
+        - !Ref RouteTable
+      VpcEndpointType: Gateway
+
 Outputs:
   AutoScalingGroupId:
     Description: "ID do Grupo de Auto Scaling"
