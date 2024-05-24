@@ -75,6 +75,8 @@ Resources:
 
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn: AttachGateway # Adicione esta linha
+
     Properties:
       Name: ApplicationLoadBalancer
       Subnets: 
