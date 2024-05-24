@@ -7,23 +7,23 @@ Parameters:
     Description: Chave SSH
 
 Resources:
-  VPC_main:
+  VPCMain:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: "10.0.0.0/16"
 
-  Subnet_1:
+  Subnet1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref VPC_main
+      VpcId: !Ref VPCMain
       AvailabilityZone: us-east-1a
       CidrBlock: "10.0.1.0/24"
       MapPublicIpOnLaunch: true
 
-  Subnet_2:
+  Subnet2:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref VPC_main
+      VpcId: !Ref VPCMain
       AvailabilityZone: us-east-1b
       CidrBlock: "10.0.2.0/24"
       MapPublicIpOnLaunch: true
@@ -31,42 +31,42 @@ Resources:
   Gateway:
     Type: AWS::EC2::InternetGateway
 
-  Gateway_connection:
+  GatewayConnection:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
-      VpcId: !Ref VPC_main
+      VpcId: !Ref VPCMain
       InternetGatewayId: !Ref Gateway
 
   RouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref VPC_main
+      VpcId: !Ref VPCMain
 
   Route:
     Type: AWS::EC2::Route
-    DependsOn: Gateway_connection
+    DependsOn: GatewayConnection
     Properties:
       RouteTableId: !Ref RouteTable
       DestinationCidrBlock: 0.0.0.0/0
       GatewayId: !Ref Gateway
 
-  Subnet_1RouteTableAssociation:
+  Subnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref Subnet_1
+      SubnetId: !Ref Subnet1
       RouteTableId: !Ref RouteTable
 
-  Subnet_2RouteTableAssociation:
+  Subnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref Subnet_2
+      SubnetId: !Ref Subnet2
       RouteTableId: !Ref RouteTable
 
   SecurityALB:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for ALB
-      VpcId: !Ref VPC_main
+      VpcId: !Ref VPCMain
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
@@ -77,7 +77,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for EC2 instances
-      VpcId: !Ref VPC_main
+      VpcId: !Ref VPCMain
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -93,8 +93,8 @@ Resources:
     Properties:
       Name: ApplicationLoadBalancer
       Subnets:
-        - !Ref Subnet_1
-        - !Ref Subnet_2
+        - !Ref Subnet1
+        - !Ref Subnet2
       SecurityGroups:
         - !Ref SecurityALB
       Scheme: internet-facing
@@ -125,7 +125,7 @@ Resources:
       Protocol: HTTP
       TargetType: instance
       UnhealthyThresholdCount: 2
-      VpcId: !Ref VPC_main
+      VpcId: !Ref VPCMain
 
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
@@ -155,8 +155,8 @@ Resources:
       MaxSize: 7
       DesiredCapacity: 3
       VPCZoneIdentifier:
-        - !Ref Subnet_1
-        - !Ref Subnet_2
+        - !Ref Subnet1
+        - !Ref Subnet2
       TargetGroupARNs:
         - !Ref TargetGroup
       HealthCheckType: ELB
@@ -247,7 +247,7 @@ Resources:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       ServiceName: com.amazonaws.us-east-1.dynamodb
-      VpcId: !Ref VPC_main
+      VpcId: !Ref VPCMain
       RouteTableIds:
         - !Ref RouteTable
       VpcEndpointType: Gateway
