@@ -28,7 +28,7 @@ Resources:
       AvailabilityZone: us-east-1a
       CidrBlock: "10.0.1.0/24"
       MapPublicIpOnLaunch: true
-
+  
   Subnet2:
     Type: AWS::EC2::Subnet
     Properties:
@@ -77,7 +77,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: ApplicationLoadBalancer
-      Subnets:
+      Subnets: 
         - !Ref Subnet1
         - !Ref Subnet2
       SecurityGroups:
@@ -86,7 +86,7 @@ Resources:
       Tags:
         - Key: Name
           Value: ApplicationLoadBalancer
-
+  
   SecurityGroupInstance:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -105,7 +105,7 @@ Resources:
   LaunchConfiguration:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      ImageId: ami-0f30a9c3a48f3fa79
+      ImageId: ami-05ade5d40b1a76a54
       InstanceType: t2.micro
       KeyName: !Ref KeyName
       SecurityGroups:
@@ -148,10 +148,10 @@ Resources:
       AutoScalingGroupName: !Ref AutoScalingGroup
       PolicyType: TargetTrackingScaling
       TargetTrackingConfiguration:
-        TargetValue: 70.0
+        TargetValue: 70.0  
         PredefinedMetricSpecification:
           PredefinedMetricType: ASGAverageCPUUtilization
-
+  
   CPUAlarm:
     Type: AWS::CloudWatch::Alarm
     Properties:
