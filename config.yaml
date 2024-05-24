@@ -1,98 +1,83 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Projeto Cloud 24.1 - CloudFormation
+Description: Projeto Cloud 24.1 - CloudFormation - Alexandre Santarossa
 
 Parameters:
   KeyName:
     Type: String
-    Description: Nome da Chave SSH para acessar instâncias
+    Description: Chave SSH
 
 Resources:
-  MainVPC:
+  VPC_main:
     Type: AWS::EC2::VPC
     Properties:
       CidrBlock: "10.0.0.0/16"
 
-  InternetGateway:
-    Type: AWS::EC2::InternetGateway
-
-  AttachGateway:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      VpcId: !Ref MainVPC
-      InternetGatewayId: !Ref InternetGateway
-
-  Subnet1:
+  Subnet_1:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref MainVPC
+      VpcId: !Ref VPC_main
       AvailabilityZone: us-east-1a
       CidrBlock: "10.0.1.0/24"
       MapPublicIpOnLaunch: true
-  
-  Subnet2:
+
+  Subnet_2:
     Type: AWS::EC2::Subnet
     Properties:
-      VpcId: !Ref MainVPC
+      VpcId: !Ref VPC_main
       AvailabilityZone: us-east-1b
       CidrBlock: "10.0.2.0/24"
       MapPublicIpOnLaunch: true
 
+  Gateway:
+    Type: AWS::EC2::InternetGateway
+
+  Gateway_connection:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref VPC_main
+      InternetGatewayId: !Ref Gateway
+
   RouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
-      VpcId: !Ref MainVPC
+      VpcId: !Ref VPC_main
 
-  PublicRoute:
+  Route:
     Type: AWS::EC2::Route
-    DependsOn: AttachGateway
+    DependsOn: Gateway_connection
     Properties:
       RouteTableId: !Ref RouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      GatewayId: !Ref InternetGateway
+      GatewayId: !Ref Gateway
 
-  Subnet1RouteTableAssociation:
+  Subnet_1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref Subnet1
+      SubnetId: !Ref Subnet_1
       RouteTableId: !Ref RouteTable
 
-  Subnet2RouteTableAssociation:
+  Subnet_2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
     Properties:
-      SubnetId: !Ref Subnet2
+      SubnetId: !Ref Subnet_2
       RouteTableId: !Ref RouteTable
 
-  SecurityGroupALB:
+  SecurityALB:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for ALB
-      VpcId: !Ref MainVPC
+      VpcId: !Ref VPC_main
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 80
           ToPort: 80
           CidrIp: 0.0.0.0/0
 
-  ApplicationLoadBalancer:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-
-    Properties:
-      Name: ApplicationLoadBalancer
-      Subnets: 
-        - !Ref Subnet1
-        - !Ref Subnet2
-      SecurityGroups:
-        - !Ref SecurityGroupALB
-      Scheme: internet-facing
-      Tags:
-        - Key: Name
-          Value: ApplicationLoadBalancer
-  
   SecurityGroupInstance:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Security group for EC2 instances
-      VpcId: !Ref MainVPC
+      VpcId: !Ref VPC_main
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -103,72 +88,19 @@ Resources:
           ToPort: 80
           CidrIp: 0.0.0.0/0
 
-  LaunchConfiguration:
-    Type: AWS::AutoScaling::LaunchConfiguration
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      ImageId: ami-0e001c9271cf7f3b9
-      InstanceType: t2.micro
-      KeyName: !Ref KeyName
+      Name: ApplicationLoadBalancer
+      Subnets:
+        - !Ref Subnet_1
+        - !Ref Subnet_2
       SecurityGroups:
-        - !Ref SecurityGroupInstance
-        - !Ref SecurityGroupALB
-      IamInstanceProfile: !Ref DynamoDBAccessProfile
-      UserData:
-        Fn::Base64: |
-          #!/bin/bash
-          sudo apt-get update -y
-          sudo apt-get install -y python3-pip git
-          sudo pip3 install flask boto3
-          sudo mkdir /opt/app
-          sudo git clone https://github.com/alexandresantarossa/cloudProjeto /opt/app
-          nohup python3 /opt/app/main.py > /var/log/main.log 2>&1 &
-
-  AutoScalingGroup:
-    Type: AWS::AutoScaling::AutoScalingGroup
-    Properties:
-      AvailabilityZones: [us-east-1a, us-east-1b]
-      LaunchConfigurationName: !Ref LaunchConfiguration
-      MinSize: 2
-      MaxSize: 7
-      DesiredCapacity: 3
-      VPCZoneIdentifier:
-        - !Ref Subnet1
-        - !Ref Subnet2
-      TargetGroupARNs:
-        - !Ref TargetGroup
-      HealthCheckType: ELB
-      HealthCheckGracePeriod: 300
+        - !Ref SecurityALB
+      Scheme: internet-facing
       Tags:
         - Key: Name
-          Value: AutoScalingGroup
-          PropagateAtLaunch: true
-
-  ScalingPolicy:
-    Type: AWS::AutoScaling::ScalingPolicy
-    Properties:
-      AutoScalingGroupName: !Ref AutoScalingGroup
-      PolicyType: TargetTrackingScaling
-      TargetTrackingConfiguration:
-        TargetValue: 70.0  
-        PredefinedMetricSpecification:
-          PredefinedMetricType: ASGAverageCPUUtilization
-  
-  CPUAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: "CPU utilization exceeds 70%"
-      Namespace: AWS/EC2
-      MetricName: CPUUtilization
-      Dimensions:
-        - Name: AutoScalingGroupName
-          Value: !Ref AutoScalingGroup
-      Statistic: Average
-      Period: 60
-      EvaluationPeriods: 5
-      Threshold: 70
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      AlarmActions:
-        - !Ref ScalingPolicy
+          Value: ApplicationLoadBalancer
 
   ALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -193,7 +125,73 @@ Resources:
       Protocol: HTTP
       TargetType: instance
       UnhealthyThresholdCount: 2
-      VpcId: !Ref MainVPC
+      VpcId: !Ref VPC_main
+
+  LaunchConfiguration:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: ami-0e001c9271cf7f3b9
+      InstanceType: t2.micro
+      KeyName: !Ref KeyName
+      SecurityGroups:
+        - !Ref SecurityGroupInstance
+      IamInstanceProfile: !Ref DynamoDBAccessProfile
+      UserData:
+        Fn::Base64: |
+          #!/bin/bash
+          sudo apt-get update -y
+          sudo apt-get install -y python3-pip git
+          sudo pip3 install flask boto3
+          sudo mkdir /opt/app
+          sudo git clone https://github.com/alexandresantarossa/cloudProjeto /opt/app
+          nohup python3 /opt/app/main.py > /var/log/main.log 2>&1 &
+
+  AutoScalingGroup:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      AvailabilityZones: [us-east-1a, us-east-1b]
+      LaunchConfigurationName: !Ref LaunchConfiguration
+      MinSize: 2
+      MaxSize: 7
+      DesiredCapacity: 3
+      VPCZoneIdentifier:
+        - !Ref Subnet_1
+        - !Ref Subnet_2
+      TargetGroupARNs:
+        - !Ref TargetGroup
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: 300
+      Tags:
+        - Key: Name
+          Value: AutoScalingGroup
+          PropagateAtLaunch: true
+
+  ScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref AutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        TargetValue: 70.0
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+
+  CPUAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: "CPU utilization exceeds 70%"
+      Namespace: AWS/EC2
+      MetricName: CPUUtilization
+      Dimensions:
+        - Name: AutoScalingGroupName
+          Value: !Ref AutoScalingGroup
+      Statistic: Average
+      Period: 60
+      EvaluationPeriods: 5
+      Threshold: 70
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      AlarmActions:
+        - !Ref ScalingPolicy
 
   DynamoDBTable:
     Type: AWS::DynamoDB::Table
@@ -249,7 +247,7 @@ Resources:
     Type: AWS::EC2::VPCEndpoint
     Properties:
       ServiceName: com.amazonaws.us-east-1.dynamodb
-      VpcId: !Ref MainVPC
+      VpcId: !Ref VPC_main
       RouteTableIds:
         - !Ref RouteTable
       VpcEndpointType: Gateway
@@ -258,6 +256,7 @@ Outputs:
   AutoScalingGroupId:
     Description: "ID do Grupo de Auto Scaling"
     Value: !Ref AutoScalingGroup
+
   ALBDNSName:
     Description: "DNS Name of the ALB"
     Value: !GetAtt ApplicationLoadBalancer.DNSName
