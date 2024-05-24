@@ -39,7 +39,7 @@ aws cloudformation create-stack --stack-name minha-pilha --template-body file://
 
 ## Segue o gráfico dos custos atuais e da previsão para o meu projeto
 
-![alt text](imgs\image.png)
+![alt text](/imgs/image.png)
 
 # Link para o repositório
 ## https://github.com/alexandresantarossa/cloudProjeto
